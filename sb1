@@ -1,0 +1,53 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Function to change the value of "Coins" to 1 for all folders within specified folders of the Shop directory
+local function setCoinsToOneForSpecifiedFolders(shopFolder)
+    if not shopFolder then
+        warn("Shop folder not found!")
+        return
+    end
+    
+    -- List of folder names to iterate through
+    local folderNames = {"ShotCeleb", "Transportation", "NetAnims", "BallTrail"}
+    
+    -- Iterate over each folder name
+    for _, folderName in pairs(folderNames) do
+        -- Get the folder with the specified name
+        local folder = shopFolder:FindFirstChild(folderName)
+        if folder then
+            print("Folder \"" .. folderName .. "\" found.")
+            -- Iterate over each child folder within the specified folder
+            for _, childFolder in pairs(folder:GetChildren()) do
+                -- Iterate over each value within the child folder
+                for _, value in pairs(childFolder:GetChildren()) do
+                    -- Check if the value is named "Coins"
+                    if value.Name == "Coins" then
+                        -- Check if the value is a NumberValue
+                        if value:IsA("NumberValue") then
+                            -- Set the value of "Coins" to 1
+                            value.Value = 1
+                            print("Coins value found in folder \"" .. folderName .. "\" and set to 1.")
+                        else
+                            warn("Coins value found in folder \"" .. folderName .. "\" but is not a NumberValue!")
+                        end
+                    end
+                end
+                
+                -- Iterate over each child within the child folder to find "Configuration" files
+                for _, child in pairs(childFolder:GetChildren()) do
+                    if child.Name == "Configuration" then
+                        print("Configuration file found in folder \"" .. folderName .. "\".")
+                        -- Handle configuration file as needed
+                    end
+                end
+            end
+        else
+            warn("Folder \"" .. folderName .. "\" not found in the Shop directory!")
+        end
+    end
+end
+
+-- Wait for the "Shop" folder to exist
+local shopFolder = ReplicatedStorage:WaitForChild("Shop")
+-- Call the function to change the value of "Coins" to 1 for specified folders within the Shop directory
+setCoinsToOneForSpecifiedFolders(shopFolder)
