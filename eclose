@@ -1,0 +1,114 @@
+local Player = game.Players.LocalPlayer
+local CoreGui = game:GetService("CoreGui")
+
+_G.Enabled = true -- Default value is true
+
+local HasBall = false
+
+-- Create the ScreenGui and TextLabel
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = CoreGui
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(0, 200, 0, 50)
+statusLabel.Position = UDim2.new(0.5, -100, 0, 0)
+statusLabel.BackgroundTransparency = 0.5
+statusLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Set background to black
+statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Set text color to white for better contrast
+statusLabel.TextScaled = true
+statusLabel.Visible = false
+statusLabel.Parent = screenGui
+
+-- Function to check if the player has a basketball in their inventory
+local function checkForBall()
+    for _, child in ipairs(Player.Character:GetChildren()) do
+        if child.Name == "Basketball" and child:IsA("Tool") and child.Parent == Player.Character then
+            return true
+        end
+    end
+    return false
+end
+
+-- Function to get the nearest "Lol" part and its distance
+local function GetNearestGoal()
+    local Goal, Distance = nil, math.huge
+
+    for _, Obj in ipairs(workspace:GetDescendants()) do
+        if Obj:IsA("BasePart") and Obj.Name == "Lol" then
+            local Mag = (Player.Character:FindFirstChild("Torso").Position - Obj.Position).Magnitude
+            if Mag < Distance then
+                Goal = Obj
+                Distance = Mag
+            end
+        end
+    end
+
+    return Goal, Distance
+end
+
+local function HandleRender()
+    if not _G.Enabled then
+        statusLabel.Visible = false
+        return
+    end
+
+    if not HasBall then
+        statusLabel.Visible = false
+        return
+    end
+
+    local Goal, Distance = GetNearestGoal()
+
+    if Player.Character then
+        if (Distance >= 57.5 and Distance < 58.5) then
+            statusLabel.Text = "In Range"
+            statusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+        elseif (Distance >= 70 and Distance < 71) then
+            statusLabel.Text = "In Range"
+            statusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+        elseif (Distance >= 60.5 and Distance < 61) or (Distance >= 66 and Distance < 67) then
+            statusLabel.Text = "Bank"
+            statusLabel.TextColor3 = Color3.fromRGB(255, 255, 0) -- Yellow color for "Bank"
+        else
+            statusLabel.Text = "Out of Range"
+            statusLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+        end
+    else
+        statusLabel.Text = "Out of Range"
+        statusLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+    end
+
+    statusLabel.Visible = true
+end
+
+-- Function to update the state of the ball possession
+local function updateBallState()
+    HasBall = checkForBall()
+end
+
+-- Function to periodically check the footing and update the label visibility
+local function periodicCheck()
+    while true do
+        if _G.Enabled then
+            updateBallState()
+            HandleRender()
+            wait(0.1) -- Adjust the delay as needed for performance
+        else
+            statusLabel.Visible = false
+            break -- Exit the loop if the script is disabled
+        end
+    end
+end
+
+-- Start the periodic check
+spawn(periodicCheck)
+
+-- Also check for ball possession when the character spawns
+Player.CharacterAdded:Connect(function(Character)
+    Character.ChildAdded:Connect(updateBallState)
+    Character.ChildRemoved:Connect(updateBallState)
+    updateBallState() -- Check immediately when the character spawns
+end)
+
+-- Initial setup
+updateBallState()
