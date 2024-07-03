@@ -1,0 +1,30 @@
+_G.Enabled = true  -- Global variable to enable/disable the script
+
+local tr = false
+local Mouse = game.Players.LocalPlayer:GetMouse()
+
+game:GetService("UserInputService").InputBegan:Connect(function(key, gpe)
+    if _G.Enabled and not gpe then  -- Check if the script is enabled
+        if key.KeyCode == Enum.KeyCode.Z then
+            tr = not tr
+        end
+
+        if tr then
+            for i, v in pairs(game.Players:GetPlayers()) do
+                local char = game.Players.LocalPlayer.Character
+                if v.Name ~= char.Name and (v.Character.Torso.CFrame.p - char.Torso.CFrame.p).Magnitude < 20 then
+                    while tr do
+                        if v.Character.Torso.Velocity.magnitude > 0.2 and v.Character:FindFirstChild("Basketball") then
+                            char.Humanoid:MoveTo(v.Character.Torso.CFrame.p + v.Character.Torso.Velocity.unit * 7)
+                        elseif v.Character.Torso.Velocity.magnitude < 0.2 and v.Character:FindFirstChild("Basketball") then
+                            char.Humanoid:MoveTo(v.Character.Torso.CFrame.p)
+                        elseif not v.Character:FindFirstChild("Basketball") then
+                            tr = false
+                        end
+                        task.wait()
+                    end
+                end
+            end
+        end
+    end
+end)
