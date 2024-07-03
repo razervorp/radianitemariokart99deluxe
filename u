@@ -1,0 +1,24 @@
+local ShopAssets = game.ReplicatedStorage.Shop
+
+for i, v in pairs(game.Players.LocalPlayer.Inventory:GetChildren()) do
+
+    for i2, v2 in pairs(ShopAssets:GetChildren()) do
+
+        if v.Name == v2.Name then
+
+            for i3, v3 in pairs(v2:GetChildren()) do
+
+               local newString = Instance.new("StringValue")
+               newString.Name = "Item"
+               newString.Value = v3.Name
+               newString.Parent = v
+
+               print("Unlocked", v3.Name)
+
+            end
+
+        end
+
+    end
+
+end
