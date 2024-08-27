@@ -1,0 +1,177 @@
+-- Global variable to enable or disable the script
+_G.Enabled = false
+
+-- Variables
+local plr = game.Players.LocalPlayer
+local uis = game:GetService("UserInputService")
+local highlight
+local highlight2
+local highlight3
+local highlight4
+local lastUpdate = 0
+
+-- Functions
+function createHighlight()
+    highlight = Instance.new("Highlight")
+    highlight.Adornee = plr.Character
+    highlight.FillColor = Color3.fromRGB(68, 131, 219)  -- Fill color
+    highlight.OutlineColor = Color3.fromRGB(20, 28, 37)  -- Outline color
+    highlight.Parent = plr.Character
+end
+
+function createHighlight2()
+    highlight2 = Instance.new("Highlight")
+    highlight2.Adornee = plr.Character
+    highlight2.FillColor = Color3.fromRGB(68, 131, 219)  -- Fill color (same as the first highlight)
+    highlight2.OutlineColor = Color3.fromRGB(20, 28, 37)  -- Outline color (same as the first highlight)
+    highlight2.Parent = plr.Character
+end
+
+function createHighlight3()
+    highlight3 = Instance.new("Highlight")
+    highlight3.Adornee = plr.Character
+    highlight3.FillColor = Color3.fromRGB(226, 157, 64)  -- Fill color for the third highlight
+    highlight3.OutlineColor = Color3.fromRGB(190, 103, 0)  -- Outline color for the third highlight
+    highlight3.Parent = plr.Character
+end
+
+function createHighlight4()
+    highlight4 = Instance.new("Highlight")
+    highlight4.Adornee = plr.Character
+    highlight4.FillColor = Color3.fromRGB(68, 131, 219)  -- Fill color for the fourth highlight
+    highlight4.OutlineColor = Color3.fromRGB(20, 28, 37)  -- Outline color for the fourth highlight
+    highlight4.Parent = plr.Character
+end
+
+function removeHighlight()
+    if highlight then
+        highlight:Destroy()
+        highlight = nil
+    end
+end
+
+function removeHighlight2()
+    if highlight2 then
+        highlight2:Destroy()
+        highlight2 = nil
+    end
+end
+
+function removeHighlight3()
+    if highlight3 then
+        highlight3:Destroy()
+        highlight3 = nil
+    end
+end
+
+function removeHighlight4()
+    if highlight4 then
+        highlight4:Destroy()
+        highlight4 = nil
+    end
+end
+
+function getNearestGoal()
+    local dist, goal = 9e9, nil
+    for _, v in pairs(workspace:GetDescendants()) do
+        if v.Name == "Lol" then
+            local mag = (plr.Character.Torso.Position - v.Position).Magnitude
+            if dist > mag then
+                dist = mag
+                goal = v
+            end
+        end
+    end
+    return dist, goal
+end
+
+function getVector(goal)
+    if not goal then return nil end
+    local dist = (plr.Character.Torso.Position - goal.Position).Magnitude
+    return goal.Position + Vector3.new(0, 40 + (dist / 15.5))
+end
+
+function shootBall(vector)
+    if plr.Character:FindFirstChild("Basketball") then
+        local event = plr.Character.Basketball:FindFirstChild("shoot_event")
+        if event then
+            local unit = (vector - plr.Character.Head.Position).Unit
+            local spawnPos = plr.Character.PrimaryPart.Position + unit * 3.8
+
+            if spawnPos.Y - plr.Character.PrimaryPart.Position.Y < 4 then
+                spawnPos = plr.Character.PrimaryPart.Position + unit * 4
+            end
+
+            event:FireServer(
+                vector,
+                spawnPos,
+                "\240\159\148\165\240\159\148\165"
+            )
+        end
+    end
+end
+
+function handleJumped()
+    if plr.Character:FindFirstChild("Basketball") then
+        game.Players.LocalPlayer.Character.Humanoid.Jump = true
+        task.wait(0.225)
+        local dist, goal = getNearestGoal()
+        local vector = getVector(goal)
+        if vector then
+            shootBall(vector)
+        end
+    end
+end
+
+game:GetService("UserInputService").InputBegan:Connect(function(key, gpe)
+    if key.KeyCode == Enum.KeyCode.B and not gpe then
+        if _G.Enabled then
+            handleJumped()
+        end
+    end
+end)
+
+-- Check for the ball and proximity to the nearest "Lol" part every 0.5 seconds
+game:GetService("RunService").Stepped:Connect(function(_, deltaTime)
+    if _G.Enabled and plr.Character:FindFirstChild("Basketball") then
+        lastUpdate = lastUpdate + deltaTime
+        if lastUpdate >= 0.5 then
+            lastUpdate = 0
+            local dist, goal = getNearestGoal()
+            if goal then
+                if dist >= 58.5 and dist <= 59 then
+                    if not highlight then
+                        createHighlight()
+                    end
+                    removeHighlight2() -- Ensure second highlight is removed
+                    removeHighlight3() -- Ensure third highlight is removed
+                    removeHighlight4() -- Ensure fourth highlight is removed
+                elseif dist >= 60 and dist <= 61 then
+                    if not highlight3 then
+                        createHighlight3()
+                    end
+                    removeHighlight() -- Ensure first highlight is removed
+                    removeHighlight2() -- Ensure second highlight is removed
+                    removeHighlight4() -- Ensure fourth highlight is removed
+                elseif dist >= 70.5 and dist <= 71.5 then
+                    if not highlight4 then
+                        createHighlight4()
+                    end
+                    removeHighlight() -- Ensure first highlight is removed
+                    removeHighlight2() -- Ensure second highlight is removed
+                    removeHighlight3() -- Ensure third highlight is removed
+                else
+                    removeHighlight() -- Remove first highlight if out of range
+                    removeHighlight2() -- Remove second highlight if out of range
+                    removeHighlight3() -- Remove third highlight if out of range
+                    removeHighlight4() -- Remove fourth highlight if out of range
+                end
+            end
+        end
+    else
+        removeHighlight() -- Remove highlight if no ball
+        removeHighlight2() -- Remove second highlight if no ball
+        removeHighlight3() -- Remove third highlight if no ball
+        removeHighlight4() -- Remove fourth highlight if no ball
+    end
+end)
